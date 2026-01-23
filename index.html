@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regex Validator Pro</title>
+    <style>
+        :root {
+            --primary-color: #27B26E; /* Primary Green */
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --danger-color: #ff4d4f;
+            --success-bg: #f6ffed;
+            --success-border: #b7eb8f;
+            --error-bg: #fff2f0;
+            --error-border: #ffccc7;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+            margin: 0;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            width: 800px; /* 变宽以容纳测试数据 */
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 6px 30px rgba(0,0,0,0.06);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+
+        h2 {
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+        }
+
+        .desc {
+            font-size: 14px;
+            color: #888;
+        }
+
+        /* Input Section */
+        .control-panel {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #555;
+            text-transform: uppercase;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 18px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        button.generate-btn {
+            flex: 1;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(39, 178, 110, 0.3);
+            transition: transform 0.1s;
+        }
+
+        button.generate-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Regex Result */
+        .result-section {
+            background: #2d3436;
+            color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .regex-display {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            word-break: break-all;
+            line-height: 1.4;
+            color: #55efc4;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Test Zone */
+        .test-zone {
+            border-top: 2px dashed #eee;
+            padding-top: 25px;
+        }
+
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .refresh-btn {
+            background-color: #f0f2f5;
+            color: #555;
+            border: 1px solid #d9d9d9;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .refresh-btn:hover {
+            background-color: #e6e8eb;
+            color: #333;
+        }
+
+        .stats-badge {
+            font-size: 13px;
+            background: #e6f7ff;
+            color: #096dd9;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+
+        /* Grid for 16-digit numbers */
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3列布局 */
+            gap: 12px;
+        }
+
+        .test-card {
+            padding: 10px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            text-align: center;
+            border: 1px solid transparent;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        /* Match Styles */
+        .match {
+            background-color: var(--success-bg);
+            border-color: var(--success-border);
+            color: #135200;
+        }
+        .match::after {
+            content: "MATCH";
+            position: absolute;
+            top: -8px;
+            right: -5px;
+            font-size: 10px;
+            background: var(--primary-color);
+            color: white;
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+
+        /* No Match Styles */
+        .no-match {
+            background-color: var(--error-bg);
+            border-color: var(--error-border);
+            color: #a8071a;
+            opacity: 0.7;
+        }
+
+        /* Highlight the critical part */
+        .highlight {
+            font-weight: 900;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .test-grid {
+                grid-template-columns: 1fr;
+            }
+            .control-panel {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>规则生成器 & 验证实验室</h2>
+        <div class="desc">针对 16位 UserID，自动生成“倒数3、4位”范围正则并批量验证</div>
+    </div>
+
+    <div class="control-panel">
+        <div class="input-group">
+            <label>起始范围 (Start)</label>
+            <input type="number" id="startRange" min="0" max="99" value="28" placeholder="28">
+        </div>
+        <div class="input-group">
+            <label>结束范围 (End)</label>
+            <input type="number" id="endRange" min="0" max="99" value="30" placeholder="30">
+        </div>
+        <button class="generate-btn" onclick="runTool()">⚡ 生成并验证</button>
+    </div>
+
+    <div class="result-section" id="resultBox" style="display:none;">
+        <div style="font-size:12px; color:#aaa; margin-bottom:5px;">REGEX PATTERN:</div>
+        <div class="regex-display" id="regexOutput"></div>
+        <button class="copy-btn" onclick="copyToClipboard()">复制</button>
+    </div>
+
+    <div class="test-zone">
+        <div class="test-header">
+            <span>🧪 <b>30组随机数据验证</b> (16位 ID)</span>
+            <div>
+                <span id="statsDisplay" class="stats-badge" style="display:none;">匹配: 0 / 30</span>
+                <button class="refresh-btn" onclick="runTool()">
+                    🔄 换一批数据
+                </button>
+            </div>
+        </div>
+        <div class="test-grid" id="testGrid">
+            <!-- Items will be injected here -->
+            <div style="grid-column: 1/-1; text-align: center; color: #999; padding: 20px;">
+                点击上方按钮开始生成测试...
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. 核心正则生成逻辑 (已优化：自动合并连续区间)
+    function generateRegexString(start, end) {
+        let parts = [];
+        let current = start;
+
+        // 辅助：生成 [a-b] 或 单个数字
+        function rangeStr(a, b) {
+            if (a === b) return `${a}`;
+            if (a === 0 && b === 9) return `\\d`; // 优化：[0-9] 改为 \d
+            return `[${a}-${b}]`;
+        }
+
+        // --- 步骤1：处理头部非整十位部分 ---
+        // 例如 28-52，这里处理 28-29
+        if (current % 10 !== 0) {
+            // 头部的结束点是当前十位的9，或者整体end（如果end在同一个十位内）
+            let headEnd = Math.min(end, Math.floor(current / 10) * 10 + 9);
+            
+            let ten = Math.floor(current / 10);
+            let low = current % 10;
+            let high = headEnd % 10;
+
+            if (low === high) {
+                parts.push(`${ten}${low}`);
+            } else {
+                parts.push(`${ten}${rangeStr(low, high)}`);
+            }
+            current = headEnd + 1;
+        }
+
+        // --- 步骤2：处理中间连续的整十位 ---
+        // current 现在是 10 的倍数。例如 30-52，这里处理 30-49
+        let bodyTenStart = Math.floor(current / 10);
+        // 如果 end 是 59，bodyTenEnd 是 5；如果 end 是 52，bodyTenEnd 是 4
+        let bodyTenEnd = (end + 1) % 10 === 0 ? Math.floor(end / 10) : Math.floor(end / 10) - 1;
+
+        if (bodyTenStart <= bodyTenEnd) {
+            // 如果只有一行，比如 30-39 -> 3\d
+            // 如果多行，比如 30-59 -> [3-5]\d
+            if (bodyTenStart === 0 && bodyTenEnd === 9) {
+                parts.push(`\\d\\d`); // 00-99 的情况
+            } else if (bodyTenStart === bodyTenEnd) {
+                parts.push(`${bodyTenStart}\\d`);
+            } else {
+                parts.push(`${rangeStr(bodyTenStart, bodyTenEnd)}\\d`);
+            }
+            // 更新 current 到下一个整十位
+            current = (bodyTenEnd + 1) * 10;
+        }
+
+        // --- 步骤3：处理尾部部分 ---
+        // 例如 28-52，这里处理 50-52
+        if (current <= end) {
+            // current 肯定是整十位
+            let ten = Math.floor(current / 10);
+            let high = end % 10; // low is 0
+            
+            if (high === 0) {
+                 parts.push(`${ten}0`); 
+            } else {
+                 parts.push(`${ten}${rangeStr(0, high)}`);
+            }
+        }
+
+        let innerPattern = parts.join('|');
+        if (parts.length > 1) {
+            innerPattern = `(${innerPattern})`;
+        }
+        
+        // 针对16位ID的优化：虽然用户只要匹配倒数3,4位，但我们可以写成 \d* 来兼容
+        return `\\d*${innerPattern}\\d{2}$`;
+    }
+
+    // 2. 随机生成 16位 字符串的工具
+    function getRandomDigit() {
+        return Math.floor(Math.random() * 10);
+    }
+    
+    // 生成固定长度的数字字符串
+    function generateRandomId(length) {
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            result += getRandomDigit();
+        }
+        return result;
+    }
+
+    // 3. 生成测试数据（智能混合：部分必中，部分随机）
+    function generateTestBatch(count, startRange, endRange) {
+        let batch = [];
+        // 策略：为了让测试更有意义，强制 30% 的数据落在范围内，70% 纯随机
+        // 这样用户既能看到绿色的（验证正则有效），也能看到红色的（验证边界有效）
+        
+        const guaranteedCount = Math.floor(count * 0.4); // 12个必中
+        
+        for (let i = 0; i < count; i++) {
+            let prefix = generateRandomId(12); // 前12位随机
+            let suffix = generateRandomId(2);  // 后2位随机
+            let target = "";
+            
+            if (i < guaranteedCount) {
+                // 生成一个在 start-end 之间的数字
+                let val = Math.floor(Math.random() * (endRange - startRange + 1)) + startRange;
+                target = val.toString().padStart(2, '0');
+            } else {
+                // 纯随机 00-99
+                target = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            }
+            
+            batch.push(prefix + target + suffix);
+        }
+        
+        // 打乱数组，不要让匹配的全挤在前面
+        return batch.sort(() => Math.random() - 0.5);
+    }
+
+    // 4. 主运行函数
+    function runTool() {
+        const startInput = document.getElementById('startRange');
+        const endInput = document.getElementById('endRange');
+        
+        let start = parseInt(startInput.value);
+        let end = parseInt(endInput.value);
+
+        if (isNaN(start) || isNaN(end) || start > end || start < 0 || end > 99) {
+            alert("请检查范围输入 (0-99, Start <= End)");
+            return;
+        }
+
+        // A. 生成正则
+        const regexStr = generateRegexString(start, end);
+        const regexObj = new RegExp(regexStr);
+        
+        document.getElementById('regexOutput').innerText = regexStr;
+        document.getElementById('resultBox').style.display = 'block';
+
+        // B. 生成并渲染测试数据
+        const testData = generateTestBatch(30, start, end);
+        const grid = document.getElementById('testGrid');
+        grid.innerHTML = ''; // 清空
+
+        let matchCount = 0;
+
+        testData.forEach(id => {
+            const isMatch = regexObj.test(id);
+            if (isMatch) matchCount++;
+
+            // 高亮处理：把倒数第3、4位标记出来
+            const prefix = id.substring(0, 12);
+            const target = id.substring(12, 14);
+            const suffix = id.substring(14, 16);
+
+            const card = document.createElement('div');
+            card.className = `test-card ${isMatch ? 'match' : 'no-match'}`;
+            
+            // HTML结构用于高亮
+            card.innerHTML = `
+                ${prefix}<span class="highlight">${target}</span>${suffix}
+            `;
+            grid.appendChild(card);
+        });
+
+        // C. 更新统计
+        const stats = document.getElementById('statsDisplay');
+        stats.style.display = 'inline-block';
+        stats.innerText = `匹配成功: ${matchCount} / 30`;
+    }
+
+    function copyToClipboard() {
+        const text = document.getElementById('regexOutput').innerText;
+        navigator.clipboard.writeText(text).then(() => alert("正则已复制到剪贴板！"));
+    }
+    
+    // 初始化运行一次
+    window.onload = runTool;
+</script>
+
+</body>
+</html>
