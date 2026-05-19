@@ -314,7 +314,7 @@
         <div class="desc">针对 16位 UserID，自动生成“倒数3、4位”范围正则并批量验证</div>
         
         <label class="lab-toggle-container">
-            <input type="checkbox" id="labToggle" onchange="toggleLabMode()"> 🧪 启用高级实验分桶
+            <input type="checkbox" id="labToggle" onchange="toggleLabMode()"> 启用离散实验分桶
         </label>
     </div>
 
@@ -343,7 +343,7 @@
         
         <!-- SQL Section for Lab Mode -->
         <details id="sqlDetails" style="display:none;">
-            <summary>SQL 映射表达式 (BI分析专用) ...</summary>
+            <summary>SQL 映射表达式 (BI分析使用) ...</summary>
             <div class="sql-container">
                 <div class="sql-display" id="sqlOutput"></div>
                 <button class="copy-btn sql-copy-btn" onclick="copyText('sqlOutput')">复制</button>
@@ -384,7 +384,7 @@
         if (isLabMode) {
             seedGroup.style.display = 'block';
             genBtn.classList.add('btn-lab-mode');
-            genBtn.innerText = '🧪 生成哈希映射正则并验证';
+            genBtn.innerText = '生成哈希映射正则';
         } else {
             seedGroup.style.display = 'none';
             // document.getElementById('hashSeed').value = ''; // We keep the value so user doesn't lose it if toggling back and forth
